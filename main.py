@@ -1,11 +1,18 @@
+import string
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from bs4 import BeautifulSoup
 import sys
 
 
-# Takes in one argument, which is a string containing the URL for the Google Doc with the input data
-def decode(req, DEBUG_MODE):
+"""
+    Takes in one argument, which is a string containing the URL for the Google Doc with the input data
+    Parameters:
+        req (int): The target URL with the data to decode
+    Returns:
+        Stdout of the decoded unicode letters
+"""
+def decode(req: string, DEBUG_MODE): 
     try:
         response = urlopen(req)
     except HTTPError as e:
@@ -18,7 +25,6 @@ def decode(req, DEBUG_MODE):
        html_data = response.read()
        extract_table(html_data, DEBUG_MODE)
 
-
 def extract_table(html_data, DEBUG_MODE):
     soup = BeautifulSoup(html_data, 'html.parser')
     relevant_data = list(soup.find_all(class_="c0"))
@@ -30,32 +36,42 @@ def extract_table(html_data, DEBUG_MODE):
     arr_2d_dict = {} # x-coord : []char
 
     if DEBUG_MODE == 0:
-        # Process each row into its own arrays through a hash map, e.g. { x_coord : [char, char] } 
+        # Process each row into its own arrays through a hash map, e.g. { y_coord : [char, char] } 
         is_new_row = 0
         for i in range(len(table)):
             is_new_row = i % 3
 
             if is_new_row == 0:
-                if table[i].text not in arr_2d_dict:
-                    if i + 2 <= len(table):
-                        # Handle non 0 y_coordinate case
-                        if table[i + 2] != 0:
-                            y_coord = int(table[i + 2].text)
-                            arr_2d_dict[table[i].text] = [" " for _ in range(y_coord)] # append necessary empty strs before placing the char in correct position
-                            arr_2d_dict[table[i].text].append(table[i + 1].text)
-                        else:
-                            arr_2d_dict[table[i].text] = [table[i + 1].text]
+                if i + 2 <= len(table) and table[i + 2].text not in arr_2d_dict:
+                    # Handle non 0 x_coord case
+                    if table[i] != 0:
+                        x_coord_raw = table[i].text.strip().replace(',', '')
+                        if x_coord_raw:
+                            try:
+                                x_coord = int(x_coord_raw)
+                                arr_2d_dict[table[i + 2].text] = [" " for _ in range(x_coord)] # append necessary empty strs before placing the char in correct position
+                                arr_2d_dict[table[i + 2].text].append(table[i + 1].text)
+                            except ValueError:
+                                print(f"Warning: Could not convert '{x_coord_raw}' to an integer for element {i}. Skipping or using a default value.")
+                    else:
+                        arr_2d_dict[table[i + 2].text] = [table[i + 1].text]
                 else:
-                    if i + 2 <= len(table):
-                        # Handle non 0 y_coordinate case
-                        if table[i + 2] != 0:
-                            y_coord = int(table[i + 2].text)
-                            for x in range(y_coord): 
-                                if arr_2d_dict[table[i].text][x] == None: # make sure we don't add empty strs in occuped positions
-                                    arr_2d_dict[table[x].text].append(" ") # append necessary empty strs before placing the char in correct position
-                            arr_2d_dict[table[i].text].append(table[i + 1].text)
+                    if i + 2 < len(table):
+                        # Handle non 0 x_coord case
+                        if table[i] != 0:
+                            x_coord_raw = table[i].text.strip().replace(',', '')
+                            if x_coord_raw:
+                                try:
+                                    x_coord = int(x_coord_raw)
+                                    for x in range(x_coord): 
+                                        if arr_2d_dict[table[i + 2].text][x] == None: # make sure we don't add empty strs in occuped positions
+                                            arr_2d_dict[table[x].text].append(" ") # append necessary empty strs before placing the char in correct position
+                                    arr_2d_dict[table[i + 2].text].append(table[i + 1].text)
+                                except ValueError:
+                                    print(f"Warning: Could not convert '{x_coord_raw}' to an integer for element {i}. Skipping or using a default value.")
+
                         else:
-                            arr_2d_dict[table[i].text].append(table[i + 1].text)
+                            arr_2d_dict[table[i + 2].text].append(table[i + 1].text)
         # Construct 2D array from arrays in hashmap
         arr_2d = []
         for key, val in arr_2d_dict.items():
@@ -68,20 +84,16 @@ def extract_table(html_data, DEBUG_MODE):
             else:
                 arr_2d.append(val)
 
-        # Print result
-        for row in arr_2d:
-            for char in row:
+        # Print result (printing it backwards to get the Capital 'F')
+        for i in range(len(arr_2d)-1, -1, -1):
+            for char in arr_2d[i]:
                 print(char, end="")
             print()
-
-        print(arr_2d)
     else:
         for row in table:
             print(row)
         print(len(table))
-    
 
-                    
 def main():
     if len(sys.argv) != 2:
         print("USAGE: python main.py <DEBUG_MODE 1=YES, 0=NO")
