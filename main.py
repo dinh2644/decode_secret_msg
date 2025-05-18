@@ -23,7 +23,7 @@ def decode(req: string):
        html_data = response.read()
        table = extract_table(html_data)
 
-    # This will map all y_coords as keys and its associated chars as a []char where its position in array depends on its x_coord, e.g. y-coord : ['', '', square(x=3)]
+       # This will map all y_coords as keys and its associated chars as a []char where its position in array depends on its x_coord, e.g. y-coord : ['', '', square(x=3)]
     arr_2d_dict = {}
     is_new_row = 0
 
