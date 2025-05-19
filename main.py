@@ -45,56 +45,44 @@ def decode(req):
                 is_new_row = i % 3
 
                 if is_new_row == 0:
-                    if (
-                        i + 2 <= len(table)
-                        and table[i + 2].text not in arr_2d_dict
-                    ):
+                    if (i + 2 < len(table)and table[i + 2].text not in arr_2d_dict):
                         # Handle non 0 x_coord case, (Any positions in the grid that do not have a specified character should be filled with a space character)
-                        if table[i] != 0:
-                            x_coord_raw = table[i].text.strip().replace(",", "")
-                            if x_coord_raw:
+                        x_coord = int(table[i].text.strip().replace(",", ""))
+                        if x_coord != 0:
+                            if x_coord:
                                 try:
-                                    x_coord = int(x_coord_raw)
-                                    arr_2d_dict[table[i + 2].text] = [
-                                        " " for _ in range(x_coord)
-                                    ]
-                                    arr_2d_dict[table[i + 2].text].append(
-                                        table[i + 1].text
-                                    )
+                                    arr_2d_dict[table[i + 2].text] = [" " for _ in range(x_coord)]
+                                    arr_2d_dict[table[i + 2].text][x_coord - 1] = table[i + 1].text
                                 except ValueError:
                                     print(
-                                        f"Warning: Could not convert '{x_coord_raw}' to an integer for element {i}. Skipping"
+                                        f"Warning: Could not convert '{x_coord}' to an integer for element {i}. Skipping"
                                     )
                         else:
-                            arr_2d_dict[table[i + 2].text] = [table[i + 1].text]
+                            arr_2d_dict[table[i + 2].text][0] = table[i + 1].text
                     else:
                         if i + 2 < len(table):
                             # Handle non 0 x_coord case, (Any positions in the grid that do not have a specified character should be filled with a space character)
-                            if table[i] != 0:
-                                x_coord_raw = (
-                                    table[i].text.strip().replace(",", "")
-                                )
-                                if x_coord_raw:
+                            x_coord = int((table[i].text.strip().replace(",", "")))
+                            if x_coord != 0:                  
+                                if x_coord:
                                     try:
-                                        x_coord = int(x_coord_raw)
                                         row = arr_2d_dict[table[i + 2].text]
                                         if x_coord > len(row):
                                             # Append spaces if targeted x_cood is > length of target array
-                                            while len(row) <= x_coord:
+                                            while len(row) < x_coord:
                                                 row.append(" ")
-                                        arr_2d_dict[table[i + 2].text].append(table[i + 1].text)
+                                        row[x_coord-1] = table[i + 1].text
                                     except ValueError:
                                         print(
-                                            f"Warning: Could not convert '{x_coord_raw}' to an integer for element {i}. Skipping"
+                                            f"Warning: Could not convert '{x_coord}' to an integer for element {i}. Skipping"
                                         )
                             else:
-                                arr_2d_dict[table[i + 2].text].append(
-                                    table[i + 1].text
-                                )
+                                arr_2d_dict[table[i + 2].text][0] = table[i + 1].text
 
             # Construct a list of lists from arr_2d_dict
             arr_2d = []
-            for key, val in arr_2d_dict.items():
+            sorted_dict = dict(sorted(arr_2d_dict.items()))
+            for key, val in sorted_dict.items():
                 if key == 0:
                     arr_2d.append(val)
                 elif key == 1:
