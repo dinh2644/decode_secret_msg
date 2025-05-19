@@ -25,6 +25,7 @@ def decode(req):
     else:
         html_data = response.read()
         table = extract_table(html_data)
+        print(table)
         if DEBUG_MODE == 1:
             print(table)
             print(len(table))
@@ -98,12 +99,6 @@ def decode(req):
                     print(char, end="")
                 print() 
 
-            # for row in arr_2d:
-            #     for char in row:
-            #         print(char, end="")
-            #     print() 
-
-
 """
     Helper function to simply extract the html table containing the necesary data
 """
@@ -112,9 +107,8 @@ def decode(req):
 def extract_table(html_data):
     soup = BeautifulSoup(html_data, "html.parser")
     relevant_data = list(soup.find("table").find_all_next("p"))
-    # specific_data = relevant_data.fin
 
-    # We don't care about the row headers, just the data
+    # Skip the first 3 row headers (just need data)
     return relevant_data[3:]
 
 
